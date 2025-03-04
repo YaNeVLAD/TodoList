@@ -6,4 +6,5 @@ data class TaskItem(
     val task: Task,
     val isTomorrow: Boolean = false,
     val isNextWeek: Boolean = false,
+    val isSelected: Boolean = false
 )

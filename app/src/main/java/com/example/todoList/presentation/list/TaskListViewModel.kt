@@ -6,6 +6,7 @@ import com.example.todoList.domain.list.GetTasksUseCase
 import com.example.todoList.domain.task.DefaultLists
 import com.example.todoList.presentation.common.BaseViewModel
 import com.example.todoList.presentation.list.data.ListItem
+import com.example.todoList.presentation.list.data.TaskItem
 
 class TaskListViewModel(
     private val getCategories: GetCategoriesUseCase,
@@ -22,9 +23,35 @@ class TaskListViewModel(
         }
     }
 
+    fun onTaskSelect(item: TaskItem) {
+        updateState {
+            copy(tasksToShow = tasksToShow.map {
+                when {
+                    it.task.id == item.task.id -> it.copy(isSelected = !it.isSelected)
+                    else -> it
+                }
+            })
+        }
+    }
+
+    fun onSearchChange(text: String) {
+        updateState {
+            copy(
+                search = text,
+                tasksToShow = when (text) {
+                    "" -> allTasks.filter { it.task.list == header.selectedList?.name }
+                    else -> allTasks.filter { it.task.title == text }
+                }
+            )
+        }
+    }
+
     fun filterTasks(list: ListItem) {
         updateState {
-            copy(tasksToShow = allTasks.filter { it.task.list == list.name })
+            copy(
+                header = header.copy(selectedList = list),
+                tasksToShow = allTasks.filter { it.task.list == list.name }
+            )
         }
     }
 
@@ -39,7 +66,7 @@ class TaskListViewModel(
             copy(
                 header = header.copy(
                     lists = getLists(),
-                    categories = getCategories()
+                    categories = getCategories(),
                 ),
                 allTasks = tasks,
                 tasksToShow = tasks.filter { it.task.list == DefaultLists.DEFAULT.name }

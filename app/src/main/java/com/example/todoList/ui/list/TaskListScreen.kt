@@ -20,9 +20,12 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -39,6 +42,7 @@ import com.example.todoList.domain.list.GetTasksUseCase
 import com.example.todoList.presentation.list.HeaderState
 import com.example.todoList.presentation.list.TaskListViewModel
 import com.example.todoList.presentation.list.data.ListItem
+import com.example.todoList.presentation.list.data.TaskItem
 import com.example.todoList.ui.theme.Pink40
 import com.example.todoList.ui.theme.PurpleGrey40
 
@@ -51,30 +55,60 @@ fun TaskListScreen(
 
     viewModel.initState()
 
-    Column(
+    Scaffold(
         modifier = Modifier
             .background(PurpleGrey40)
-            .fillMaxSize()
-    ) {
-        Header(
-            state = state.header,
-            toggleMenu = viewModel::onToggleListMenu,
-            onFilterClick = viewModel::filterTasks
-        )
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            items(state.tasksToShow) {
-                Text(text = it.task.title)
+            .fillMaxSize(),
+        topBar = {
+            Header(
+                state = state.header,
+                toggleMenu = viewModel::onToggleListMenu,
+                onFilterClick = viewModel::filterTasks
+            )
+        },
+        content = { contentPadding ->
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(contentPadding)
+            ) {
+                items(state.tasksToShow) { item ->
+                    Task(item, viewModel)
+                }
             }
+        },
+        bottomBar = {
+            TextField(
+                value = state.search,
+                onValueChange = viewModel::onSearchChange,
+                modifier = Modifier
+                    .fillMaxWidth()
+            )
         }
-    }
-
+    )
 }
 
 @Composable
-private fun DrawListItems(
+private fun Task(
+    item: TaskItem,
+    viewModel: TaskListViewModel
+) {
+    Row {
+        Checkbox(
+            checked = item.isSelected,
+            onCheckedChange = {
+                viewModel.onTaskSelect(item)
+            })
+        Text(
+            text = item.task.title,
+            modifier = Modifier
+                .align(Alignment.CenterVertically)
+        )
+    }
+}
+
+@Composable
+private fun ListItems(
     items: List<ListItem>,
     onClick: (ListItem) -> Unit,
 ) {
@@ -189,9 +223,9 @@ private fun ListsFilter(
         modifier = Modifier
     ) {
         Column {
-            DrawListItems(
+            ListItems(
                 items = filters,
-                onClick = onFilterClick
+                onClick = onFilterClick,
             )
         }
     }
